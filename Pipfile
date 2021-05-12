@@ -13,7 +13,6 @@ h5py = "*"
 colorama = "*"
 pytelegrambotapi = "*"
 schedule = "*"
-schedulr = "*"
 
 [dev-packages]
 

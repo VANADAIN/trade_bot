@@ -26,14 +26,10 @@ class Trader:
 		self.IN_POSITION = False
 
 	def get_signals(self):
-		df = self.data.get_candle_data(200, '5m')
+		df = self.data.get_candle_data(200, '1m')
 		df = self.st_ind.average_true_range(df, 50)
 		df = self.st_ind.supertrend(df)
 		df = self.cci_ind.calculate_cci(df)
-
-		# print("-----------\n")
-		# print(df.tail(12))
-		# print("-----------\n")
 
 		st_signal = self.st_ind.create_signal(df)
 		vbs_signal = self.volume_ind.create_bs_signal(df, 30)
@@ -70,7 +66,7 @@ class Trader:
 
 	def trade(self, decision, price, amount): 
 
-		# add in_position bool !!!!!!!!!!
+
 		if decision == 'buy' and self.IN_POSITION == False:
 
 			self.buy(price, amount)
@@ -109,7 +105,7 @@ class Trader:
 
 		print(self.signals)
 
-		self.notifier.send_message(f'Sold {amount} ETH for {price} $\nTime : {str(datetime.now())}')
+		self.notifier.send_message(f'Sold {self.bought_amount} ETH for {price} $\nTime : {str(datetime.now())}')
 
 		self.estimated_income_notifier()
 
@@ -141,14 +137,16 @@ trader = Trader()
 print('Trading now...')
 
 def run():
-	# to run on schedule  
+	# to run on schedule 
+	
 	df = trader.get_signals()
+	print(trader.signals)
 	price, amount = trader.get_available_amount(df)
 	decision = trader.decision_maker()
 	trader.trade(decision, price, amount)
 
 
-schedule.every(5).minutes.do(run)
+schedule.every(1).minutes.do(run)
 
 while True:
     schedule.run_pending()
