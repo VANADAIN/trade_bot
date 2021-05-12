@@ -31,7 +31,9 @@ class Trader:
 		df = self.st_ind.supertrend(df)
 		df = self.cci_ind.calculate_cci(df)
 
-		print(df.tail(10))
+		# print("-----------\n")
+		# print(df.tail(12))
+		# print("-----------\n")
 
 		st_signal = self.st_ind.create_signal(df)
 		vbs_signal = self.volume_ind.create_bs_signal(df, 30)

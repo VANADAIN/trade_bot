@@ -13,8 +13,9 @@ h5py = "*"
 colorama = "*"
 pytelegrambotapi = "*"
 schedule = "*"
+schedulr = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.7.3"
