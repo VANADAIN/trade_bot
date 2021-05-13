@@ -14,7 +14,7 @@ class SuperTrend:
 
 		return df
 
-	def supertrend(self, df, multiplier = 3):
+	def supertrend(self, df, multiplier = 1):
 		hl2 = (df['high'] + df['low']) / 2 
 		df['upperband'] = hl2 + (multiplier * df['atr'])
 		df['lowerband'] = hl2 - (multiplier * df['atr'])

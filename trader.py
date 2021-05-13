@@ -25,8 +25,8 @@ class Trader:
 
 		self.IN_POSITION = False
 
-	def get_signals(self):
-		df = self.data.get_candle_data(200, '1m')
+	def get_signals(self, period, frame):
+		df = self.data.get_candle_data(period, frame)
 		df = self.st_ind.average_true_range(df, 50)
 		df = self.st_ind.supertrend(df)
 		df = self.cci_ind.calculate_cci(df)
@@ -52,7 +52,8 @@ class Trader:
 
 	def decision_maker(self):
 		
-		if self.signals['supertrend'] == 1 and self.signals['volume_bs'] == 1 and self.signals['cci'] == 1: 
+		# if self.signals['supertrend'] == 1 and self.signals['volume_bs'] == 1 and self.signals['cci'] == 1:
+		if self.signals['supertrend'] == 1: 
 
 			return 'buy'
 
@@ -128,7 +129,7 @@ class Trader:
 		if sell > buy:
 			text = f'Ммм, чувствую запах денег...\n + {income} $\n + {income_rub} Р. (примерно)'
 		else:
-			text = f'Бляяяяя, проебался\n - {income} $\n - {income_rub} Р. (примерно)'
+			text = f'Бляяяяя, проебался\n  {income} $\n  {income_rub} Р. (примерно)'
 
 		self.notifier.send_message(text)
 
@@ -139,8 +140,8 @@ print('Trading now...')
 def run():
 	# to run on schedule 
 	
-	df = trader.get_signals()
-	print(trader.signals)
+	df = trader.get_signals(150, '5m')
+	print(f'Time: {str(datetime.now().time())}\n  sig: {trader.signals}\n')
 	price, amount = trader.get_available_amount(df)
 	decision = trader.decision_maker()
 	trader.trade(decision, price, amount)
