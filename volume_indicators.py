@@ -5,10 +5,10 @@ class Volume:
 
 	# basic strength
 	def create_bs_signal(self, df, window):
-		df['SMA'] = df['volume'].rolling(window = window).mean()
+		df['vol_SMA'] = df['volume'].rolling(window = window).mean()
 		
 		# above average -> buy/sell
-		if df['volume'].iloc[-1] > df['SMA'].iloc[-1]:
+		if df['volume'].iloc[-1] > df['vol_SMA'].iloc[-1]:
 
 			return 1
 

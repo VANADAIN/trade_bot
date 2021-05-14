@@ -90,8 +90,36 @@ class CCI :
 
 			return 0
 
+class RSI:
+    
+    def calculate_rsi(self, df, period):
+        rsi_ind = RSIIndicator(df['close'], window = period)
+        rsi = rsi_ind.rsi() 
+        df['rsi'] = rsi
+        
+        return df
+    
+    def calculate_smas(self, df, w1, w2):
+        # short ma 
+        df['rsi_short'] = df['rsi'].rolling(window = w1).mean()
+        
+        # long ma
+        df['rsi_long'] = df['rsi'].rolling(window = w2).mean()
 
-
+        return df
+    
+    def create_ma_signal(self, df):
+        
+        if df['rsi_short'].iloc[-1] < df['rsi_long'].iloc[-1]:
+            return -1
+        
+        elif df['rsi_short'].iloc[-1] > df['rsi_long'].iloc[-1]:
+            return 1
+        
+        else:
+            return 0
+        
+        
 # data = Data()
 # df = data.get_candle_data()
 # st = SuperTrend()

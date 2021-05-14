@@ -6,7 +6,7 @@ from datetime import datetime
 from colorama import Fore
 from telegram import Notifier
 from exchange import Data
-from indicators import SuperTrend, CCI
+from indicators import SuperTrend, CCI, RSI
 from volume_indicators import Volume
 
 class Trader:
@@ -17,6 +17,7 @@ class Trader:
 		self.st_ind = SuperTrend()
 		self.volume_ind = Volume()
 		self.cci_ind = CCI()
+		self.rsi_ind = RSI()
 		self.signals = {}
 
 		self.bought_amount = 0
@@ -30,14 +31,18 @@ class Trader:
 		df = self.st_ind.average_true_range(df, 50)
 		df = self.st_ind.supertrend(df)
 		df = self.cci_ind.calculate_cci(df)
+		df = self.rsi_ind.calculate_rsi(df, 10)
+		df = self.rsi_ind.calculate_smas(df, 10, 15)
 
 		st_signal = self.st_ind.create_signal(df)
 		vbs_signal = self.volume_ind.create_bs_signal(df, 30)
 		cci_signal = self.cci_ind.create_signal(df)
+		rsi_ma_signal = self.rsi_ind.create_ma_signal(df)
 
 		self.signals['supertrend'] = st_signal
 		self.signals['volume_bs'] = vbs_signal
 		self.signals['cci'] = cci_signal
+		self.signals['rsi_ma'] = rsi_ma_signal
 
 		return df
 
@@ -53,7 +58,7 @@ class Trader:
 	def decision_maker(self):
 		
 		# if self.signals['supertrend'] == 1 and self.signals['volume_bs'] == 1 and self.signals['cci'] == 1:
-		if self.signals['supertrend'] == 1: 
+		if self.signals['supertrend'] == 1 and self.signals['rsi_ma'] == 1: 
 
 			return 'buy'
 
