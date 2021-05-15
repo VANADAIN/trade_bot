@@ -32,7 +32,7 @@ class Trader:
 		df = self.st_ind.supertrend(df)
 		df = self.cci_ind.calculate_cci(df)
 		df = self.rsi_ind.calculate_rsi(df, 10)
-		df = self.rsi_ind.calculate_smas(df, 10, 15)
+		df = self.rsi_ind.calculate_smas(df, 10, 20)
 
 		st_signal = self.st_ind.create_signal(df)
 		vbs_signal = self.volume_ind.create_bs_signal(df, 30)
@@ -48,7 +48,7 @@ class Trader:
 
 	def get_available_amount(self, df):
 		actual_price = df['close'].iloc[-1] 
-		price_for_amount = actual_price + 15.0
+		price_for_amount = actual_price + 20.0
 		usdt_data = trader.data.get_balance('USDT')
 		usdt_free = usdt_data['free']
 		amount = usdt_free / price_for_amount
@@ -128,7 +128,8 @@ class Trader:
 		# price in usdt
 		buy = self.bought_for
 		sell = self.sold_for
-		income = sell - buy
+		income_pure = sell - buy
+		income = income_pure * self.bought_amount
 		income_rub = income * 75
 
 		if sell > buy:
@@ -145,12 +146,20 @@ print('Trading now...')
 def run():
 	# to run on schedule 
 	
-	df = trader.get_signals(150, '5m')
-	print(f'Time: {str(datetime.now().time())}\n  sig: {trader.signals}\n')
-	price, amount = trader.get_available_amount(df)
-	decision = trader.decision_maker()
-	trader.trade(decision, price, amount)
+	try:
+    
+		df = trader.get_signals(150, '5m')
+		print(f'Time: {str(datetime.now().time())}\n  sig: {trader.signals}\n')
+		price, amount = trader.get_available_amount(df)
+		decision = trader.decision_maker()
+		trader.trade(decision, price, amount)
 
+	except Exception as e:
+		trader.notifier.send_message("Exception in code occured:")
+		trader.notifier.send_message(e)
+		trader.notifier.send_message("Check exchange manually")
+		print(e)
+		exit()
 
 schedule.every(1).minutes.do(run)
 

@@ -18,7 +18,9 @@ class Data:
 			exchange = ccxt.binance({
 					'apiKey' : config.API_KEY,
 					'secret' : config.SECRET_KEY,
-					'timeout' : 3000
+					'enableRateLimit': True,
+					'adjustForTimeDifference': True,
+					'timeout' : 5000 
 				})
 
 		return exchange
