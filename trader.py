@@ -6,18 +6,23 @@ from datetime import datetime
 from colorama import Fore
 from telegram import Notifier
 from exchange import Data
-from indicators import SuperTrend, CCI, RSI
-from volume_indicators import Volume
+from indicators import SuperTrend, CCI, RSI, ROC
+from volume_indicators import Volume, VWAP
 
 class Trader:
 
 	def __init__(self):
 		self.data = Data()
 		self.notifier = Notifier()
-		self.st_ind = SuperTrend()
+
 		self.volume_ind = Volume()
+		self.vwap_ind = VWAP()
+
+		self.st_ind = SuperTrend()
 		self.cci_ind = CCI()
 		self.rsi_ind = RSI()
+		self.roc_ind = ROC()
+
 		self.signals = {}
 
 		self.bought_amount = 0
@@ -29,20 +34,27 @@ class Trader:
 	def get_signals(self, period, frame):
 		df = self.data.get_candle_data(period, frame)
 		df = self.st_ind.average_true_range(df, 50)
-		df = self.st_ind.supertrend(df)
+		df = self.st_ind.supertrend(df, multiplier = 1.8)
 		df = self.cci_ind.calculate_cci(df)
 		df = self.rsi_ind.calculate_rsi(df, 10)
-		df = self.rsi_ind.calculate_smas(df, 10, 20)
+		df = self.rsi_ind.calculate_smas(df, 10, 12)
+		df = self.roc_ind.calculate_roc(df, 10)
+		df = self.vwap_ind.calculate_vwap(df, 50)
+
 
 		st_signal = self.st_ind.create_signal(df)
-		vbs_signal = self.volume_ind.create_bs_signal(df, 30)
+		vbs_signal = self.volume_ind.create_bs_signal(df, 20)
 		cci_signal = self.cci_ind.create_signal(df)
 		rsi_ma_signal = self.rsi_ind.create_ma_signal(df)
+		roc_signal = self.roc_ind.create_delta_signal(df)
+		vwap_signal = self.vwap_ind.create_signal(df)
 
 		self.signals['supertrend'] = st_signal
 		self.signals['volume_bs'] = vbs_signal
 		self.signals['cci'] = cci_signal
 		self.signals['rsi_ma'] = rsi_ma_signal
+		self.signals['roc_delta'] = roc_signal
+		self.signals['vwap'] = vwap_signal
 
 		return df
 
@@ -52,13 +64,14 @@ class Trader:
 		usdt_data = trader.data.get_balance('USDT')
 		usdt_free = usdt_data['free']
 		amount = usdt_free / price_for_amount
-
+		amount = amount / 2
+		
 		return actual_price, amount
 
 	def decision_maker(self):
 		
-		# if self.signals['supertrend'] == 1 and self.signals['volume_bs'] == 1 and self.signals['cci'] == 1:
-		if self.signals['supertrend'] == 1 and self.signals['rsi_ma'] == 1: 
+		# if self.signals['supertrend'] == 1 and self.signals['rsi_ma'] == 1 and self.signals['roc_delta'] == 1 and self.signals['volume_bs'] == 1 and self.signals['vwap'] == 1 : 
+		
 
 			return 'buy'
 
@@ -88,9 +101,9 @@ class Trader:
 			pass
 
 	def buy(self, price, amount): 
-		# order = data.exchange.create_market_buy_order('ETH/USDT', amount)
+		order = data.exchange.create_market_buy_order('ETH/USDT', amount)
 		
-		# # save order
+		# save order
 		# self.write_order(order, "Buy_")
 
 		# write amount of coin 
@@ -103,7 +116,7 @@ class Trader:
 		self.notifier.send_message(f'Bought {amount} ETH for {price} $\nTime : {str(datetime.now())}')
 
 	def sell(self, price):
-		# order = self.data.create_market_sell_order('ETH/USDT', self.bought_amount)
+		order = self.data.create_market_sell_order('ETH/USDT', self.bought_amount)
 
 		# self.write_order(order, "Sell_")
 
@@ -116,13 +129,13 @@ class Trader:
 		self.estimated_income_notifier()
 
 
-	def write_order(self, order, order_type):
-		path = 'trade_data/'
-		now = str(datetime.now())
-		filename = path + order_type + now + ".json"
-		out_file = open(filename, "w")
-		json.dump(order, out_file, indent = 4)
-		out_file.close() 
+	# def write_order(self, order, order_type):
+	# 	path = 'trade_data/'
+	# 	now = str(datetime.now())
+	# 	filename = path + order_type + now + ".json"
+	# 	out_file = open(filename, "w")
+	# 	json.dump(order, out_file, indent = 4)
+	# 	out_file.close() 
 
 	def estimated_income_notifier(self):
 		# price in usdt
@@ -135,7 +148,7 @@ class Trader:
 		if sell > buy:
 			text = f'Ммм, чувствую запах денег...\n + {income} $\n + {income_rub} Р. (примерно)'
 		else:
-			text = f'Бляяяяя, проебался\n  {income} $\n  {income_rub} Р. (примерно)'
+			text = f'Ошибочка :(\n  {income} $\n  {income_rub} Р. (примерно)'
 
 		self.notifier.send_message(text)
 

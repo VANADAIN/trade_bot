@@ -19,8 +19,8 @@ class Data:
 					'apiKey' : config.API_KEY,
 					'secret' : config.SECRET_KEY,
 					'enableRateLimit': True,
-					'adjustForTimeDifference': True,
-					'timeout' : 5000 
+					'timeout' : 15000 ,
+					'options': { 'adjustForTimeDifference': True }
 				})
 
 		return exchange
@@ -31,7 +31,7 @@ class Data:
 		
 		return balance
 
-	def get_candle_data(self, period=100, timeframe='5m'):
+	def get_candle_data(self, period=300, timeframe='5m'):
 		candles = self.exchange.fetch_ohlcv(self.pair, limit = period, timeframe = timeframe)
 		df = pd.DataFrame(candles, columns = ['unix', 'open', 'high', 'low', 'close', 'volume'])
 

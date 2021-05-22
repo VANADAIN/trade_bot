@@ -6,7 +6,7 @@ class Notifier:
 	def __init__(self):
 		self.TOKEN = config.TELEGRAM_KEY
 		self.bot = telebot.TeleBot(self.TOKEN)
-		self.chat_id = -537121416
+		self.chat_id = config.CHAT_ID
 
 	def prepare_text(self, data):
 		pass

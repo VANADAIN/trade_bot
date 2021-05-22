@@ -1,5 +1,6 @@
 
 from exchange import Data
+from ta.volume import VolumeWeightedAveragePrice
 
 class Volume:
 
@@ -17,6 +18,20 @@ class Volume:
 
 			return -1
 
-# volume = Volume()
-# signal = volume.create_bs_signal(df, 20)
-# print(signal)
+class VWAP:
+
+	def calculate_vwap(self, df, window):
+		vwap = VolumeWeightedAveragePrice(df['high'], df['low'], df['close'], df['volume'], window = window)
+		df['vwap'] = vwap.volume_weighted_average_price()
+
+		return df
+
+	def create_signal(self, df):
+		if df['close'].iloc[-1] < df['vwap'].iloc[-1]:
+			return 1
+
+		else: 
+			return -1
+
+
+
